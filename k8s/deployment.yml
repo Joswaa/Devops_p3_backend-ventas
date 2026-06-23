@@ -1,6 +1,45 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  name: mysql-ventas-db
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-ventas-db
+  template:
+    metadata:
+      labels:
+        app: mysql-ventas-db
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "admin123"
+        - name: MYSQL_DATABASE
+          value: "ventas_db"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-ventas-service
+  namespace: default
+spec:
+  selector:
+    app: mysql-ventas-db
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
   name: backend-ventas
   namespace: default
 spec:
@@ -17,18 +56,18 @@ spec:
       - name: backend-ventas
         image: 921558516087.dkr.ecr.us-east-1.amazonaws.com/backend-ventas:latest
         ports:
-        - containerPort: 8080 # <-- CAMBIO 1: El puerto donde corre tu app Java
+        - containerPort: 8080
         env:
         - name: DB_ENDPOINT
-          value: "TU-ENDPOINT-DE-RDS-AQUI"
+          value: "mysql-ventas-service" # <-- Conexión interna automática para ventas
         - name: DB_PORT
           value: "3306"
         - name: DB_NAME
           value: "ventas_db"
         - name: DB_USERNAME
-          value: "admin"
+          value: "root"
         - name: DB_PASSWORD
-          value: "tu_password_rds"
+          value: "admin123"
 ---
 apiVersion: v1
 kind: Service
@@ -41,5 +80,5 @@ spec:
     app: backend-ventas
   ports:
     - protocol: TCP
-      port: 8080 # <-- CAMBIO 2: Puerto por el que escuchará el servicio interno
-      targetPort: 8080 # <-- CAMBIO 3: Puerto del contenedor al que redirige el tráfico
+      port: 8080
+      targetPort: 8080
