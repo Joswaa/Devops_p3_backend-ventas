@@ -68,6 +68,8 @@ spec:
           value: "root"
         - name: DB_PASSWORD
           value: "admin123"
+        - name: RESTART_VERSION
+          value: "1"
 ---
 apiVersion: v1
 kind: Service
