@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-ventas
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-ventas
+  template:
+    metadata:
+      labels:
+        app: backend-ventas
+    spec:
+      containers:
+      - name: backend-ventas
+        image: 921558516087.dkr.ecr.us-east-1.amazonaws.com/backend-ventas:latest
+        ports:
+        - containerPort: 8080 # <-- CAMBIO 1: El puerto donde corre tu app Java
+        env:
+        - name: DB_ENDPOINT
+          value: "TU-ENDPOINT-DE-RDS-AQUI"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "ventas_db"
+        - name: DB_USERNAME
+          value: "admin"
+        - name: DB_PASSWORD
+          value: "tu_password_rds"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-ventas-service
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: backend-ventas
+  ports:
+    - protocol: TCP
+      port: 8080 # <-- CAMBIO 2: Puerto por el que escuchará el servicio interno
+      targetPort: 8080 # <-- CAMBIO 3: Puerto del contenedor al que redirige el tráfico
