@@ -71,4 +71,4 @@ spec:
         - name: SPRING_JPA_HIBERNATE_DDL_AUTO
           value: "update"
         - name: RESTART_VERSION
-          value: "10"
+          value: "11"
