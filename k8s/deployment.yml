@@ -52,35 +52,23 @@ spec:
       labels:
         app: backend-ventas
     spec:
+      initContainers:
+      - name: wait-for-mysql
+        image: busybox:1.36
+        command: ['sh', '-c', 'until nc -z -w 2 mysql-ventas-service 3306; do echo "Esperando a MySQL..."; sleep 2; done;']
       containers:
       - name: backend-ventas
         image: 921558516087.dkr.ecr.us-east-1.amazonaws.com/backend-ventas:latest
         ports:
         - containerPort: 8080
         env:
-        - name: DB_ENDPOINT
-          value: "mysql-ventas-service" # <-- Conexión interna automática para ventas
-        - name: DB_PORT
-          value: "3306"
-        - name: DB_NAME
-          value: "ventas_db"
-        - name: DB_USERNAME
+        - name: SPRING_DATASOURCE_URL
+          value: "jdbc:mysql://mysql-ventas-service:3306/ventas_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC"
+        - name: SPRING_DATASOURCE_USERNAME
           value: "root"
-        - name: DB_PASSWORD
+        - name: SPRING_DATASOURCE_PASSWORD
           value: "admin123"
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: "update"
         - name: RESTART_VERSION
-          value: "1"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-ventas-service
-  namespace: default
-spec:
-  type: ClusterIP
-  selector:
-    app: backend-ventas
-  ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
+          value: "10"
