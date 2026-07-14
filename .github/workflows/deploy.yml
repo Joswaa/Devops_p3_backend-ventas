@@ -1,14 +1,12 @@
 name: Backend Ventas Deploy
-
 on:
   push:
     branches:
-      - deploy
+      - deploy 
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -22,18 +20,29 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Login to Amazon ECR
-        id: login-ecr # <--- Agregamos este ID para poder usar su salida
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
+        env:
+          IMAGE_TAG: deploy-${{ github.sha }}
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO_BACKEND_VENTAS }}:latest ./Springboot-API-REST
-          
-      - name: Push Docker image
-        run: |
-          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO_BACKEND_VENTAS }}:latest
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO_BACKEND_VENTAS }}:$IMAGE_TAG ./Springboot-API-REST
 
-      - name: Update Kubeconfig and Deploy to EKS
+      - name: Push Docker image
+        env:
+          IMAGE_TAG: deploy-${{ github.sha }}
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name eks-proyect-innovatech
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO_BACKEND_VENTAS }}:$IMAGE_TAG
+
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name eks-proyect-innovatech
+
+      - name: Deploy to EKS
+        env:
+          IMAGE_TAG: deploy-${{ github.sha }}
+        run: |
           kubectl apply -f k8s/
+          kubectl set image deployment/backend-ventas backend-ventas=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO_BACKEND_VENTAS }}:$IMAGE_TAG
+          kubectl rollout status deployment/backend-ventas
