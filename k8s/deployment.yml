@@ -92,7 +92,7 @@ metadata:
   name: backend-ventas-service
   namespace: default
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   selector:
     app: backend-ventas
   ports:
