@@ -35,5 +35,5 @@ jobs:
 
       - name: Update Kubeconfig and Deploy to EKS
         run: |
-          aws eks update-kubeconfig --region us-east-1 --name eks-proyect-innovatech
+          aws eks update-kubeconfig --region us-east-1 --name proyecto-eks
           kubectl apply -f k8s/
