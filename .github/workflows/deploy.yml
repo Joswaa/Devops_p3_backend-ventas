@@ -37,7 +37,7 @@ jobs:
 
       - name: Update Kubeconfig
         run: |
-          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name eks-proyect-innovatech
+          aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name proyecto-eks
 
       - name: Deploy to EKS
         env:
